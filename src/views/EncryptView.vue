@@ -1,24 +1,13 @@
 <script setup>
 import { ref, watch } from 'vue'
 import * as openpgp from 'openpgp'
+import { useKeyStore } from '@/stores/keys'
+
+const keys = useKeyStore()
 
 const ciphertextPlaceholder = '--- Awaiting valid input ---'
-const publicKeyArmored = ref('')
 const plaintext = ref('')
 const ciphertext = ref(ciphertextPlaceholder)
-
-const pubKeys = ref(JSON.parse(localStorage.getItem('pgp-webui-pubkeys')) || [])
-const selectedPubKey = ref('')
-
-async function getPublicKey(fingerprint) {
-  let candidateKeys = pubKeys.value.filter((el) => {
-    return el.fingerprint == fingerprint
-  })
-  if (candidateKeys.length == 1) {
-    return candidateKeys[0].key
-  }
-  return null
-}
 
 async function encrypt(pubkey, plaintext) {
   const publicKey = await openpgp.readKey({ armoredKey: pubkey })
@@ -30,8 +19,7 @@ async function encrypt(pubkey, plaintext) {
 }
 
 async function doEncrypt() {
-  const publicKey = (await getPublicKey(selectedPubKey.value)) || publicKeyArmored.value
-  encrypt(publicKey, plaintext.value)
+  encrypt(keys.activePublicKey.key, plaintext.value)
     .then((encrypted) => {
       ciphertext.value = encrypted
     })
@@ -40,7 +28,6 @@ async function doEncrypt() {
     })
 }
 
-watch(publicKeyArmored, doEncrypt)
 watch(plaintext, doEncrypt)
 </script>
 
@@ -50,27 +37,12 @@ watch(plaintext, doEncrypt)
 
     <div class="encrypt">
       <div>
-        <h3>Public Key</h3>
-
-        <select v-model="selectedPubKey">
-          <option v-for="pubKey in pubKeys" :value="pubKey.fingerprint">{{ pubKey.name }}</option>
-          <option value="manual">Enter key manually...</option>
-        </select>
-
-        <textarea
-          v-model="publicKeyArmored"
-          v-if="selectedPubKey == 'manual'"
-          rows="10"
-          cols="70"
-        ></textarea>
-      </div>
-      <div>
         <h3>Message</h3>
-        <textarea v-model="plaintext" rows="10" cols="70"></textarea>
+        <textarea v-model="plaintext" rows="25" cols="70"></textarea>
       </div>
       <div>
         <h3>Encrypted Message</h3>
-        <textarea v-model="ciphertext" rows="23" cols="70" readonly></textarea>
+        <textarea v-model="ciphertext" rows="25" cols="70" readonly></textarea>
       </div>
     </div>
   </div>

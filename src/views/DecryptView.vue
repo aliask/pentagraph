@@ -1,27 +1,16 @@
 <script setup>
 import { ref, watch } from 'vue'
 import * as openpgp from 'openpgp'
+import { useKeyStore } from '@/stores/keys'
+
+const keys = useKeyStore()
 
 const plaintextPlaceholder = '--- Awaiting valid input ---'
 
-const privateKeyArmored = ref('')
 const cipherTextarea = ref('')
 const plainTextarea = ref(plaintextPlaceholder)
 const needsPassphrase = ref(false)
 const passphrase = ref('')
-
-const privKeys = ref(JSON.parse(localStorage.getItem('pgp-webui-privkeys')) || [])
-const selectedPrivKey = ref('')
-
-async function getPrivateKey(fingerprint) {
-  let candidateKeys = privKeys.value.filter((el) => {
-    return el.fingerprint == fingerprint
-  })
-  if (candidateKeys.length == 1) {
-    return candidateKeys[0].key
-  }
-  return null
-}
 
 async function decrypt(privKey, ciphertext, passphrase) {
   let privateKey = await openpgp.readKey({ armoredKey: privKey })
@@ -40,9 +29,7 @@ async function decrypt(privKey, ciphertext, passphrase) {
 }
 
 async function doDecrypt() {
-  const privateKey = (await getPrivateKey(selectedPrivKey.value)) || privateKeyArmored.value
-  console.log(privateKey)
-  return decrypt(privateKey, cipherTextarea.value, passphrase.value)
+  return decrypt(keys.activePrivateKey.key, cipherTextarea.value, passphrase.value)
     .then((decrypted) => {
       plainTextarea.value = decrypted.data
     })
@@ -52,10 +39,9 @@ async function doDecrypt() {
     })
 }
 
-watch(privateKeyArmored, doDecrypt)
 watch(cipherTextarea, doDecrypt)
 watch(passphrase, doDecrypt)
-watch(selectedPrivKey, doDecrypt)
+watch(keys.activePrivateKey, doDecrypt)
 </script>
 
 <template>
@@ -63,35 +49,18 @@ watch(selectedPrivKey, doDecrypt)
     <h1>Decrypt a message</h1>
     <div class="decrypt">
       <div>
-        <h3>Private Key</h3>
-
-        <select v-model="selectedPrivKey">
-          <option v-for="privKey in privKeys" :value="privKey.fingerprint">
-            {{ privKey.name }}
-          </option>
-          <option value="manual">Enter key manually...</option>
-        </select>
-
-        <textarea
-          v-model="privateKeyArmored"
-          v-if="selectedPrivKey == 'manual'"
-          rows="10"
-          cols="70"
-        ></textarea>
-        <div v-if="needsPassphrase">
-          <h3>Passphrase</h3>
-          <input type="password" v-model="passphrase" />
-        </div>
-      </div>
-      <div>
         <div>
           <h3>Encrypted Message</h3>
-          <textarea v-model="cipherTextarea" rows="10" cols="70"></textarea>
+          <textarea v-model="cipherTextarea" rows="25" cols="70"></textarea>
         </div>
       </div>
       <div>
+        <div v-if="needsPassphrase">
+          <h3>Passphrase</h3>
+          <input v-model="passphrase" type="password">
+        </div>
         <h3>Decrypted Message</h3>
-        <textarea v-model="plainTextarea" rows="23" cols="70" readonly></textarea>
+        <textarea v-model="plainTextarea" rows="25" cols="70" readonly></textarea>
       </div>
     </div>
   </div>
