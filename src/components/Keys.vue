@@ -26,8 +26,8 @@ async function checkPrivateKey(event) {
 }
 watch(newPrivateKey, checkPrivateKey)
 
-function checkPublicKey(event) {
-  let newKey = keys.checkKey(newPublicKey.value)
+async function checkPublicKey(event) {
+  let newKey = await keys.checkKey(newPublicKey.value)
   if(newKey) {
     newPublicKeyIsValid.value = true
     newPublicKeyName.value = newKey.name
@@ -45,10 +45,8 @@ watch(newPublicKey, checkPublicKey)
     <div>
       <h3>Private Keys</h3>
       <ul class="keyList">
-        <li v-for="privKey in keys.privateKeys" :title="'Fingerprint: ' + privKey.fingerprint">
-          <span v-if="privKey == keys.activePrivateKey">🟢</span>
-          <span v-if="privKey != keys.activePrivateKey">⚫</span>
-          <a href="#" @click="keys.setPrivateKey(privKey.fingerprint)">{{ privKey.name }}</a>
+        <li v-for="privKey in keys.privateKeys" :title="'Fingerprint: ' + privKey.fingerprint" :class="{ active: privKey == keys.activePrivateKey}">
+          <a href="#" class="key" @click="keys.setPrivateKey(privKey.fingerprint)">{{ privKey.name }}</a>
           -
           <a href="#" @click="keys.deleteKey(privKey.fingerprint)">Delete</a>
         </li>
@@ -75,10 +73,10 @@ watch(newPublicKey, checkPublicKey)
     <div>
       <h3>Public Keys</h3>
       <ul class="keyList">
-        <li v-for="pubKey in keys.publicKeys" :title="'Fingerprint: ' + pubKey.fingerprint">
-          <span v-if="pubKey.fingerprint == keys.activePublicKey.fingerprint">🟢</span>
-          <span v-if="pubKey.fingerprint != keys.activePublicKey.fingerprint">⚫</span>
-          {{ pubKey.name }} - <a href="#" @click="keys.deleteKey(pubKey.fingerprint)">Delete</a>
+        <li v-for="pubKey in keys.publicKeys" :title="'Fingerprint: ' + pubKey.fingerprint" :class="{ active: pubKey == keys.activePublicKey}">
+          <a href="#" class="key" @click="keys.setPublicKey(pubKey.fingerprint)">{{ pubKey.name }}</a>
+          -
+          <a href="#" @click="keys.deleteKey(pubKey.fingerprint)">Delete</a>
         </li>
         <li v-if="!showAddPublicKeys">
           <button @click="showAddPublicKeys = true">
@@ -124,6 +122,14 @@ watch(newPublicKey, checkPublicKey)
 
 .keyList > * {
   padding: 0.3em;
+}
+
+a.key::before {
+  content: '⚫'
+}
+
+.active > a.key::before {
+  content: '🟢'
 }
 
 button {
