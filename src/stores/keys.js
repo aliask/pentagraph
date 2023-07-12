@@ -12,17 +12,22 @@ export const useKeyStore = defineStore('keys', () => {
   const activePublicKey = computed(
     () =>
       publicKeys.value.filter((e) => {
-        e.fingerprint == selectedPublicKey.value
-      })[0]
+        e.fingerprint == selectedPublicKey
+      })[0] || {}
   )
-  const activePrivateKey = computed(
-    () =>
-      privateKeys.value.filter((e) => {
-        e.fingerprint == selectedPrivateKey.value
-      })[0]
-  )
+  const activePrivateKey = computed(() => {
+      let activeKey = privateKeys.value.filter((e) => {
+        return e.fingerprint == selectedPrivateKey.value
+      })
+      if(activeKey.length == 1) {
+        return activeKey[0]
+      } else {
+        return {}
+      }
+  })
 
   async function setPrivateKey(fingerprint) {
+    console.log(`Setting ${fingerprint} active`)
     selectedPrivateKey.value = fingerprint
   }
   async function setPublicKey(fingerprint) {
@@ -48,16 +53,16 @@ export const useKeyStore = defineStore('keys', () => {
   async function checkKey(armoredKey) {
     try {
       let key = await openpgp.readKey({ armoredKey })
+      let newKey = {
+        name: (await key.getPrimaryUser()).user.userID.userID,
+        fingerprint: key.getFingerprint(),
+        key: armoredKey
+      }
+      return newKey
     } catch (e) {
       console.error(e)
       return null
     }
-    let newKey = {
-      name: (await key.getPrimaryUser()).user.userID.userID,
-      fingerprint: key.getFingerprint(),
-      key: armoredKey
-    }
-    return newKey
   }
 
   async function deleteKey(fingerprint) {

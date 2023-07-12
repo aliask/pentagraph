@@ -1,12 +1,8 @@
 <script setup>
 import { ref, watch } from 'vue'
-import * as openpgp from 'openpgp'
 import { useKeyStore } from '@/stores/keys'
 
 const keys = useKeyStore()
-
-const pubKeys = ref(JSON.parse(localStorage.getItem('pgp-webui-pubkeys')) || [])
-const privKeys = ref(JSON.parse(localStorage.getItem('pgp-webui-privkeys')) || [])
 
 const showAddPrivateKeys = ref(false)
 const newPrivateKey = ref('')
@@ -18,84 +14,30 @@ const newPublicKey = ref('')
 const newPublicKeyName = ref('')
 const newPublicKeyIsValid = ref(false)
 
-async function addPrivateKey(event) {
-  try {
-    let privateKey = await openpgp.readKey({ armoredKey: newPrivateKey.value })
-    let newUser = {
-      name: (await privateKey.getPrimaryUser()).user.userID.userID,
-      fingerprint: privateKey.getFingerprint(),
-      key: newPrivateKey.value
-    }
-    privKeys.value.push(newUser)
-    localStorage.setItem('pgp-webui-privkeys', JSON.stringify(privKeys.value))
-    newPrivateKey.value = ''
-    showAddPrivateKeys.value = false
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-async function deletePrivKey(keyFingerprint) {
-  privKeys.value = privKeys.value.filter((el) => {
-    return el.fingerprint != keyFingerprint
-  })
-  localStorage.setItem('pgp-webui-privkeys', JSON.stringify(privKeys.value))
-}
-
 async function checkPrivateKey(event) {
-  try {
-    let privateKey = await openpgp.readKey({ armoredKey: newPrivateKey.value })
-    newPrivateKeyName.value = (await privateKey.getPrimaryUser()).user.userID.userID
+  let newKey = await keys.checkKey(newPrivateKey.value)
+  if(newKey) {
     newPrivateKeyIsValid.value = true
-  } catch (e) {
-    newPrivateKeyName.value = ''
+    newPrivateKeyName.value = newKey.name
+  } else {
     newPrivateKeyIsValid.value = false
-    console.error(e)
+    newPrivateKeyName.value = ''
   }
 }
 watch(newPrivateKey, checkPrivateKey)
 
-async function addPublicKey(event) {
-  try {
-    let PublicKey = await openpgp.readKey({ armoredKey: newPublicKey.value })
-    let newUser = {
-      name: (await PublicKey.getPrimaryUser()).user.userID.userID,
-      fingerprint: await PublicKey.getFingerprint(),
-      key: newPublicKey.value
-    }
-    pubKeys.value.push(newUser)
-    localStorage.setItem('pgp-webui-pubkeys', JSON.stringify(pubKeys.value))
-    newPublicKey.value = ''
-    showAddPublicKeys.value = false
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-async function deletePubKey(keyFingerprint) {
-  pubKeys.value = pubKeys.value.filter((el) => {
-    return el.fingerprint != keyFingerprint
-  })
-  localStorage.setItem('pgp-webui-pubkeys', JSON.stringify(pubKeys.value))
-}
-
-async function checkPublicKey(event) {
-  try {
-    let PublicKey = await openpgp.readKey({ armoredKey: newPublicKey.value })
-    newPublicKeyName.value = (await PublicKey.getPrimaryUser()).user.userID.userID
+function checkPublicKey(event) {
+  let newKey = keys.checkKey(newPublicKey.value)
+  if(newKey) {
     newPublicKeyIsValid.value = true
-  } catch (e) {
-    newPublicKeyName.value = ''
+    newPublicKeyName.value = newKey.name
+  } else {
     newPublicKeyIsValid.value = false
-    console.error(e)
+    newPublicKeyName.value = ''
   }
 }
 watch(newPublicKey, checkPublicKey)
 
-async function cancelAdd() {
-  showAddPublicKeys.value = false
-  showAddPrivateKeys.value = false
-}
 </script>
 
 <template>
@@ -103,54 +45,58 @@ async function cancelAdd() {
     <div>
       <h3>Private Keys</h3>
       <ul class="keyList">
-        <li v-for="privKey in privKeys" :title="'Fingerprint: ' + privKey.fingerprint">
-          <a href="#" @click="setPrivateKey(privKey)">{{ privKey.name }}</a>
+        <li v-for="privKey in keys.privateKeys" :title="'Fingerprint: ' + privKey.fingerprint">
+          <span v-if="privKey == keys.activePrivateKey">🟢</span>
+          <span v-if="privKey != keys.activePrivateKey">⚫</span>
+          <a href="#" @click="keys.setPrivateKey(privKey.fingerprint)">{{ privKey.name }}</a>
           -
-          <a href="#" @click="deletePrivKey(privKey.fingerprint)">Delete</a>
+          <a href="#" @click="keys.deleteKey(privKey.fingerprint)">Delete</a>
         </li>
-        <li>
-          <button @click="showAddPrivateKeys = true" :disabled="showAddPrivateKeys">
+        <li v-if="!showAddPrivateKeys">
+          <button @click="showAddPrivateKeys = true">
             Add a new private key
           </button>
         </li>
       </ul>
 
       <div v-if="showAddPrivateKeys" class="addKeyAside">
-        <h3>Add a new Private Key</h3>
         <textarea
-          @keydown.esc="cancelAdd"
+          @keydown.esc="showAddPrivateKeys = false"
           v-model="newPrivateKey"
           class="keyInput"
           :class="{ finished: newPrivateKeyIsValid }"
         ></textarea>
         <span v-if="newPrivateKeyIsValid">Key UserID: {{ newPrivateKeyName }}</span>
-        <button @click="addPrivateKey" :disabled="!newPrivateKeyIsValid">Add</button>
+        <button @click="showAddPrivateKeys = false">Cancel</button>
+        <button @click="keys.addKey(newPrivateKey)" :disabled="!newPrivateKeyIsValid">Add</button>
       </div>
     </div>
 
     <div>
       <h3>Public Keys</h3>
       <ul class="keyList">
-        <li v-for="pubKey in pubKeys" :title="'Fingerprint: ' + pubKey.fingerprint">
-          {{ pubKey.name }} - <a href="#" @click="deletePubKey(pubKey.fingerprint)">Delete</a>
+        <li v-for="pubKey in keys.publicKeys" :title="'Fingerprint: ' + pubKey.fingerprint">
+          <span v-if="pubKey.fingerprint == keys.activePublicKey.fingerprint">🟢</span>
+          <span v-if="pubKey.fingerprint != keys.activePublicKey.fingerprint">⚫</span>
+          {{ pubKey.name }} - <a href="#" @click="keys.deleteKey(pubKey.fingerprint)">Delete</a>
         </li>
-        <li>
-          <button @click="showAddPublicKeys = true" :disabled="showAddPublicKeys">
+        <li v-if="!showAddPublicKeys">
+          <button @click="showAddPublicKeys = true">
             Add a new public key
           </button>
         </li>
       </ul>
 
       <div v-if="showAddPublicKeys" class="addKeyAside">
-        <h3>Add a new Public Key</h3>
         <textarea
-          @keydown.esc="cancelAdd"
+          @keydown.esc="showAddPublicKeys = false"
           v-model="newPublicKey"
           class="keyInput"
           :class="{ finished: newPublicKeyIsValid }"
         ></textarea>
         <span v-if="newPublicKeyIsValid">Key UserID: {{ newPublicKeyName }}</span>
-        <button @click="addPublicKey" :disabled="!newPublicKeyIsValid">Add</button>
+        <button @click="showAddPublicKeys = false">Cancel</button>
+        <button @click="keys.addKey(newPublicKey)" :disabled="!newPublicKeyIsValid">Add</button>
       </div>
     </div>
   </div>
@@ -180,7 +126,7 @@ async function cancelAdd() {
   padding: 0.3em;
 }
 
-.keyList button {
+button {
   display: inline-block;
   outline: none;
   cursor: pointer;
