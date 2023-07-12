@@ -9,25 +9,21 @@ export const useKeyStore = defineStore('keys', () => {
   const publicKeys = ref(JSON.parse(localStorage.getItem('pgp-webui-pubkeys')) || [])
   const selectedPublicKey = ref('')
 
-  const activePublicKey = computed(
-    () =>
-      publicKeys.value.filter((e) => {
-        e.fingerprint == selectedPublicKey
-      })[0] || {}
-  )
+  const activePublicKey = computed(() => {
+    let activeKey = publicKeys.value.filter((e) => {
+      return e.fingerprint == selectedPublicKey.value
+    })
+    return activeKey[0] || {}
+  })
+
   const activePrivateKey = computed(() => {
-      let activeKey = privateKeys.value.filter((e) => {
-        return e.fingerprint == selectedPrivateKey.value
-      })
-      if(activeKey.length == 1) {
-        return activeKey[0]
-      } else {
-        return {}
-      }
+    let activeKey = privateKeys.value.filter((e) => {
+      return e.fingerprint == selectedPrivateKey.value
+    })
+    return activeKey[0] || {}
   })
 
   async function setPrivateKey(fingerprint) {
-    console.log(`Setting ${fingerprint} active`)
     selectedPrivateKey.value = fingerprint
   }
   async function setPublicKey(fingerprint) {
