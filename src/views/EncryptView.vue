@@ -2,8 +2,10 @@
 import { ref, watch } from 'vue'
 import * as openpgp from 'openpgp'
 import { useKeyStore } from '@/stores/keys'
+import { storeToRefs } from 'pinia'
 
 const keys = useKeyStore()
+const { activePublicKey } = storeToRefs(keys)
 
 const ciphertextPlaceholder = '--- Awaiting valid input ---'
 const plaintext = ref('')
@@ -19,7 +21,7 @@ async function encrypt(pubkey, plaintext) {
 }
 
 async function doEncrypt() {
-  encrypt(keys.activePublicKey.key, plaintext.value)
+  encrypt(activePublicKey.value.key, plaintext.value)
     .then((encrypted) => {
       ciphertext.value = encrypted
     })
@@ -29,6 +31,7 @@ async function doEncrypt() {
 }
 
 watch(plaintext, doEncrypt)
+watch(activePublicKey, doEncrypt)
 </script>
 
 <template>

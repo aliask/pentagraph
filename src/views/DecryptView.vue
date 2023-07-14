@@ -2,8 +2,10 @@
 import { ref, watch } from 'vue'
 import * as openpgp from 'openpgp'
 import { useKeyStore } from '@/stores/keys'
+import { storeToRefs } from 'pinia'
 
 const keys = useKeyStore()
+const { activePrivateKey } = storeToRefs(keys)
 
 const plaintextPlaceholder = '--- Awaiting valid input ---'
 
@@ -29,7 +31,7 @@ async function decrypt(privKey, ciphertext, passphrase) {
 }
 
 async function doDecrypt() {
-  return decrypt(keys.activePrivateKey.key, cipherTextarea.value, passphrase.value)
+  return decrypt(activePrivateKey.value.key, cipherTextarea.value, passphrase.value)
     .then((decrypted) => {
       plainTextarea.value = decrypted.data
     })
@@ -41,7 +43,7 @@ async function doDecrypt() {
 
 watch(cipherTextarea, doDecrypt)
 watch(passphrase, doDecrypt)
-watch(keys.activePrivateKey, doDecrypt)
+watch(activePrivateKey, doDecrypt)
 </script>
 
 <template>
