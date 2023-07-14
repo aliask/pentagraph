@@ -1,32 +1,21 @@
 <script setup>
 import { ref, watch } from 'vue'
-import * as openpgp from 'openpgp'
 import { useKeyStore } from '@/stores/keys'
 import { storeToRefs } from 'pinia'
 
 const keys = useKeyStore()
 const { activePublicKey } = storeToRefs(keys)
 
-const ciphertextPlaceholder = '--- Awaiting valid input ---'
 const plaintext = ref('')
-const ciphertext = ref(ciphertextPlaceholder)
-
-async function encrypt(pubkey, plaintext) {
-  const publicKey = await openpgp.readKey({ armoredKey: pubkey })
-
-  return openpgp.encrypt({
-    message: await openpgp.createMessage({ text: plaintext }),
-    encryptionKeys: publicKey
-  })
-}
+const ciphertext = ref('')
 
 async function doEncrypt() {
-  encrypt(activePublicKey.value.key, plaintext.value)
+  return keys.encrypt(plaintext.value)
     .then((encrypted) => {
       ciphertext.value = encrypted
     })
     .catch((e) => {
-      ciphertext.value = ciphertextPlaceholder
+      ciphertext.value = e
     })
 }
 

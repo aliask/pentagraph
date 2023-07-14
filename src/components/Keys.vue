@@ -8,6 +8,7 @@ const showAddPrivateKeys = ref(false)
 const newPrivateKey = ref('')
 const newPrivateKeyName = ref('')
 const newPrivateKeyIsValid = ref(false)
+const passphrase = ref('')
 
 const showAddPublicKeys = ref(false)
 const newPublicKey = ref('')
@@ -38,17 +39,39 @@ async function checkPublicKey(event) {
 }
 watch(newPublicKey, checkPublicKey)
 
+async function doUnlock() {
+  return keys.unlock(passphrase.value)
+    .then(unlocked => {
+      if(unlocked)
+        passphrase.value = ''
+    }).catch(e => {})
+}
+watch(passphrase, doUnlock)
+
 </script>
 
 <template>
   <div class="keys">
+    <h1>Key Management</h1>
     <div>
       <h3>Private Keys</h3>
       <ul class="keyList">
-        <li v-for="privKey in keys.privateKeys" :title="'Fingerprint: ' + privKey.fingerprint" :class="{ active: privKey == keys.activePrivateKey}">
+        <li
+          v-for="privKey in keys.privateKeys"
+          :title="'Fingerprint: ' + privKey.fingerprint"
+          :class="[
+            { active: privKey == keys.activePrivateKey },
+            { locked: keys.privateKeyLocked }
+          ]"
+        >
           <a href="#" class="key" @click="keys.setPrivateKey(privKey.fingerprint)">{{ privKey.name }}</a>
           -
           <a href="#" @click="keys.deleteKey(privKey.fingerprint)">Delete</a>
+        </li>
+        
+        <li v-if="keys.privateKeyLocked">
+          <h3>Passphrase</h3>
+          <input v-model="passphrase" type="password">
         </li>
         <li v-if="!showAddPrivateKeys">
           <button @click="showAddPrivateKeys = true">
@@ -73,7 +96,7 @@ watch(newPublicKey, checkPublicKey)
     <div>
       <h3>Public Keys</h3>
       <ul class="keyList">
-        <li v-for="pubKey in keys.publicKeys" :title="'Fingerprint: ' + pubKey.fingerprint" :class="{ active: pubKey == keys.activePublicKey}">
+        <li v-for="pubKey in keys.publicKeys" :title="'Fingerprint: ' + pubKey.fingerprint" :class="{ active: pubKey == keys.activePublicKey }">
           <a href="#" class="key" @click="keys.setPublicKey(pubKey.fingerprint)">{{ pubKey.name }}</a>
           -
           <a href="#" @click="keys.deleteKey(pubKey.fingerprint)">Delete</a>
@@ -126,6 +149,10 @@ watch(newPublicKey, checkPublicKey)
 
 a.key::before {
   content: '⚫'
+}
+
+.active.locked > a.key::before {
+  content: '🔒'
 }
 
 .active > a.key::before {
