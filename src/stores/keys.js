@@ -3,10 +3,10 @@ import { defineStore } from 'pinia'
 import * as openpgp from 'openpgp'
 
 export const useKeyStore = defineStore('keys', () => {
-  const privateKeys = ref(JSON.parse(localStorage.getItem('pgp-webui-privkeys')) || [])
+  const privateKeys = ref(JSON.parse(localStorage.getItem('pentagraph-privkeys')) || [])
   const selectedPrivateKey = ref('')
 
-  const publicKeys = ref(JSON.parse(localStorage.getItem('pgp-webui-pubkeys')) || [])
+  const publicKeys = ref(JSON.parse(localStorage.getItem('pentagraph-pubkeys')) || [])
   const selectedPublicKey = ref('')
 
   const activePublicKey = computed(() => {
@@ -59,10 +59,10 @@ export const useKeyStore = defineStore('keys', () => {
     }
     if (key.isPrivate()) {
       privateKeys.value.push(newKey)
-      localStorage.setItem('pgp-webui-privkeys', JSON.stringify(privateKeys.value))
+      localStorage.setItem('pentagraph-privkeys', JSON.stringify(privateKeys.value))
     } else {
       publicKeys.value.push(newKey)
-      localStorage.setItem('pgp-webui-pubkeys', JSON.stringify(publicKeys.value))
+      localStorage.setItem('pentagraph-pubkeys', JSON.stringify(publicKeys.value))
     }
   }
 
@@ -85,11 +85,11 @@ export const useKeyStore = defineStore('keys', () => {
     publicKeys.value = publicKeys.value.filter((e) => {
       e.fingerprint != fingerprint
     })
-    localStorage.setItem('pgp-webui-pubkeys', JSON.stringify(publicKeys.value))
+    localStorage.setItem('pentagraph-pubkeys', JSON.stringify(publicKeys.value))
     privateKeys.value = privateKeys.value.filter((e) => {
       e.fingerprint != fingerprint
     })
-    localStorage.setItem('pgp-webui-privkeys', JSON.stringify(privateKeys.value))
+    localStorage.setItem('pentagraph-privkeys', JSON.stringify(privateKeys.value))
   }
 
   async function encrypt(plaintext) {

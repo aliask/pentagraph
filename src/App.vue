@@ -6,7 +6,7 @@ import Keys from './components/Keys.vue'
 
 <template>
   <header>
-    <img alt="Logo" class="logo" src="@/assets/keybox.png" width="125" height="125" />
+    <img alt="Logo" class="logo" src="@/assets/pentagraph.png" width="125" height="125" />
 
     <div class="wrapper">
       <Header msg="Quick and Easy PGP in your browser" />
