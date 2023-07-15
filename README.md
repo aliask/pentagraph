@@ -1,4 +1,4 @@
-# Pentagraph
+# <img src="./src/assets/pentagraph.png" height="25"> Pentagraph
 
 Pentagraph is a browser-based app for performing PGP encryption and decryption.
 
