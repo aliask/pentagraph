@@ -35,7 +35,7 @@ watch(privateKeyLocked, doDecrypt)
     </div>
     <div>
       <h3>Decrypted Message</h3>
-      <textarea v-model="plainTextarea" readonly></textarea>
+      <textarea v-model="plainTextarea" @click="$event.target.select()" readonly></textarea>
     </div>
   </div>
 </template>

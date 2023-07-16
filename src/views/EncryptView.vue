@@ -33,7 +33,7 @@ watch(activePublicKey, doEncrypt)
     </div>
     <div>
       <h3>Encrypted Message</h3>
-      <textarea v-model="ciphertext" readonly></textarea>
+      <textarea v-model="ciphertext" @click="$event.target.select()" readonly></textarea>
     </div>
   </div>
 </template>
