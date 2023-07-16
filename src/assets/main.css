@@ -6,18 +6,38 @@
   padding: 2rem;
   height: 100vh;
   font-weight: normal;
+  gap: 2rem;
 }
 
 a,
 .orange {
   text-decoration: none;
-  color: hsla(40, 100%, 60%, 1);
+  color: var(--vt-c-primary);
   transition: 0.4s;
+}
+
+input {
+  background-color: var(--color-background-soft);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+textarea {
+  background-color: var(--color-background-soft);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  width: 100%;
+  font-family: monospace;
+  height: 30em;
+}
+
+textarea:hover, textarea:focus, input:hover, textarea:focus {
+  border: 1px solid var(--color-border-hover);
 }
 
 @media (hover: hover) {
   a:hover {
-    background-color: hsla(40, 100%, 60%, 0.2);
+    background-color: var(--vt-c-primary-muted);
   }
 }
 
@@ -32,5 +52,6 @@ a,
     flex-direction: column;
     width: 100vw;
     place-items: center;
+    text-align: center;
   }
 }

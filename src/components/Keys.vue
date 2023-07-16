@@ -51,8 +51,8 @@ watch(passphrase, doUnlock)
 </script>
 
 <template>
+  <h2>Keys</h2>
   <div class="keys">
-    <h1>Key Management</h1>
     <div>
       <h3>Private Keys</h3>
       <ul class="keyList">
@@ -88,8 +88,10 @@ watch(passphrase, doUnlock)
           :class="{ finished: newPrivateKeyIsValid }"
         ></textarea>
         <span v-if="newPrivateKeyIsValid">Key UserID: {{ newPrivateKeyName }}</span>
-        <button @click="showAddPrivateKeys = false">Cancel</button>
-        <button @click="keys.addKey(newPrivateKey)" :disabled="!newPrivateKeyIsValid">Add</button>
+        <div class="buttongroup">
+          <button @click="showAddPrivateKeys = false">Cancel</button>
+          <button class="accept" @click="keys.addKey(newPrivateKey)" :disabled="!newPrivateKeyIsValid">Add</button>
+        </div>
       </div>
     </div>
 
@@ -116,8 +118,10 @@ watch(passphrase, doUnlock)
           :class="{ finished: newPublicKeyIsValid }"
         ></textarea>
         <span v-if="newPublicKeyIsValid">Key UserID: {{ newPublicKeyName }}</span>
-        <button @click="showAddPublicKeys = false">Cancel</button>
-        <button @click="keys.addKey(newPublicKey)" :disabled="!newPublicKeyIsValid">Add</button>
+        <div class="buttongroup">
+          <button @click="showAddPublicKeys = false">Cancel</button>
+          <button class="accept" @click="keys.addKey(newPublicKey)" :disabled="!newPublicKeyIsValid">Add</button>
+        </div>
       </div>
     </div>
   </div>
@@ -127,10 +131,10 @@ watch(passphrase, doUnlock)
 @media (min-width: 1024px) {
   .keys {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 2em;
-    width: 30vw;
     place-items: center;
+    width: 100%;
   }
 }
 
@@ -148,33 +152,53 @@ watch(passphrase, doUnlock)
 }
 
 a.key::before {
-  content: '⚫'
+  content: '⚫';
+  margin-right: 0.1em;
 }
 
 .active.locked > a.key::before {
-  content: '🔒'
+  content: '🔒';
+  margin-right: 0.1em;
 }
 
 .active > a.key::before {
-  content: '🟢'
+  content: '🟢';
+  margin-right: 0.1em;
 }
 
 button {
   display: inline-block;
   outline: none;
   cursor: pointer;
-  border-radius: 3px;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 16px;
-  padding: 2px 16px;
-  height: 32px;
-  min-width: 60px;
-  min-height: 32px;
+  border-radius: 0.25em;
+  padding: 0.5em 1em;
   border: none;
   color: #fff;
-  background-color: #4f545c;
-  transition: background-color 0.17s ease, color 0.17s ease;
+  background-color: hsl(220, 10%, 30%);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+button:hover {
+  background-color: hsl(220, 10%, 40%);
+}
+
+button.accept {
+  background-color: var(--vt-c-primary);
+  font-weight: 700;
+}
+
+button.accept:hover {
+  background-color: var(--vt-c-primary-highlight);
+}
+
+.buttongroup {
+  display: flex;
+  flex-direction: row;
+  gap: 2em;
+}
+
+.buttongroup > * {
+  flex: 1;
 }
 
 .addKeyAside {
@@ -182,12 +206,5 @@ button {
   flex-direction: column;
   gap: 1em;
   justify-items: start;
-}
-
-.keyInput,
-.keyInput.finished:focus {
-  width: 40em;
-  font-family: monospace;
-  height: 30em;
 }
 </style>

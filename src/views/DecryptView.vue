@@ -25,33 +25,34 @@ watch(privateKeyLocked, doDecrypt)
 </script>
 
 <template>
-  <div>
-    <h1>Decrypt a message</h1>
-    <div class="decrypt">
+  <h2>Decrypt a message</h2>
+  <div class="decrypt">
+    <div>
       <div>
-        <div>
-          <h3>Encrypted Message</h3>
-          <textarea v-model="cipherTextarea" rows="25" cols="70"></textarea>
-        </div>
+        <h3>Encrypted Message</h3>
+        <textarea v-model="cipherTextarea"></textarea>
       </div>
-      <div>
-        <h3>Decrypted Message</h3>
-        <textarea v-model="plainTextarea" rows="25" cols="70" readonly></textarea>
-      </div>
+    </div>
+    <div>
+      <h3>Decrypted Message</h3>
+      <textarea v-model="plainTextarea" readonly></textarea>
     </div>
   </div>
 </template>
 
 <style>
+h3 {
+  margin-bottom: 0.5em;
+}
+
 @media (min-width: 1024px) {
   .decrypt {
     display: flex;
     flex-direction: row;
     gap: 2em;
-    width: 70vw;
   }
   .decrypt > * {
-    width: 33.33%;
+    width: 50%;
   }
 }
 </style>

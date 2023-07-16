@@ -24,32 +24,33 @@ watch(activePublicKey, doEncrypt)
 </script>
 
 <template>
-  <div>
-    <h1>Encrypt a message</h1>
+  <h2>Encrypt a message</h2>
 
-    <div class="encrypt">
-      <div>
-        <h3>Message</h3>
-        <textarea v-model="plaintext" rows="25" cols="70"></textarea>
-      </div>
-      <div>
-        <h3>Encrypted Message</h3>
-        <textarea v-model="ciphertext" rows="25" cols="70" readonly></textarea>
-      </div>
+  <div class="encrypt">
+    <div>
+      <h3>Message</h3>
+      <textarea v-model="plaintext"></textarea>
+    </div>
+    <div>
+      <h3>Encrypted Message</h3>
+      <textarea v-model="ciphertext" readonly></textarea>
     </div>
   </div>
 </template>
 
 <style>
+h3 {
+  margin-bottom: 0.5em;
+}
+
 @media (min-width: 1024px) {
   .encrypt {
     display: flex;
     flex-direction: row;
     gap: 2em;
-    width: 70vw;
   }
   .encrypt > * {
-    width: 33.33%;
+    width: 50%;
   }
 }
 </style>
