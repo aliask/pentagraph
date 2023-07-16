@@ -48,6 +48,20 @@ async function doUnlock() {
 }
 watch(passphrase, doUnlock)
 
+async function addPrivateKey(newKey) {
+  keys.addKey(newKey).then(e => {
+    newPrivateKey.value = ""
+    showAddPrivateKeys.value = false
+  })
+}
+
+async function addPublicKey(newKey) {
+  keys.addKey(newKey).then(e => {
+    newPublicKey.value = ""
+    showAddPublicKeys.value = false
+  })
+}
+
 </script>
 
 <template>
@@ -90,7 +104,7 @@ watch(passphrase, doUnlock)
         <span v-if="newPrivateKeyIsValid">Key UserID: {{ newPrivateKeyName }}</span>
         <div class="buttongroup">
           <button @click="showAddPrivateKeys = false">Cancel</button>
-          <button class="accept" @click="keys.addKey(newPrivateKey)" :disabled="!newPrivateKeyIsValid">Add</button>
+          <button class="accept" @click="addPrivateKey(newPrivateKey)" :disabled="!newPrivateKeyIsValid">Add</button>
         </div>
       </div>
     </div>
@@ -120,7 +134,7 @@ watch(passphrase, doUnlock)
         <span v-if="newPublicKeyIsValid">Key UserID: {{ newPublicKeyName }}</span>
         <div class="buttongroup">
           <button @click="showAddPublicKeys = false">Cancel</button>
-          <button class="accept" @click="keys.addKey(newPublicKey)" :disabled="!newPublicKeyIsValid">Add</button>
+          <button class="accept" @click="addPublicKey(newPublicKey)" :disabled="!newPublicKeyIsValid">Add</button>
         </div>
       </div>
     </div>
