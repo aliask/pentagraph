@@ -102,7 +102,7 @@ async function onDrop(dropEvent) {
         >
           <a href="#" class="key" @click="keys.setPrivateKey(privKey.fingerprint)">{{ privKey.name }}</a>
           -
-          <a href="#" @click="keys.deleteKey(privKey.fingerprint)">Delete</a>
+          <a href="#" @click="keys.deletePrivateKey(privKey.fingerprint)">Delete</a>
         </li>
         
         <li v-if="keys.privateKeyLocked">
@@ -137,7 +137,7 @@ async function onDrop(dropEvent) {
         <li v-for="pubKey in keys.publicKeys" :title="'Fingerprint: ' + pubKey.fingerprint" :class="{ active: pubKey == keys.activePublicKey }">
           <a href="#" class="key" @click="keys.setPublicKey(pubKey.fingerprint)">{{ pubKey.name }}</a>
           -
-          <a href="#" @click="keys.deleteKey(pubKey.fingerprint)">Delete</a>
+          <a href="#" @click="keys.deletePublicKey(pubKey.fingerprint)">Delete</a>
         </li>
         <li v-if="!showAddPublicKeys">
           <button @click="showAddPublicKeys = true">

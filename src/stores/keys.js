@@ -58,11 +58,17 @@ export const useKeyStore = defineStore('keys', () => {
       key: armoredKey
     }
     if (key.isPrivate()) {
-      privateKeys.value.push(newKey)
-      localStorage.setItem('pentagraph-privkeys', JSON.stringify(privateKeys.value))
+      let existing = privateKeys.value.find(key => key.fingerprint == newKey.fingerprint)
+      if(!existing) {
+        privateKeys.value.push(newKey)
+        localStorage.setItem('pentagraph-privkeys', JSON.stringify(privateKeys.value))
+      }
     } else {
-      publicKeys.value.push(newKey)
-      localStorage.setItem('pentagraph-pubkeys', JSON.stringify(publicKeys.value))
+      let existing = publicKeys.value.find(key => key.fingerprint == newKey.fingerprint)
+      if(!existing) {
+        publicKeys.value.push(newKey)
+        localStorage.setItem('pentagraph-pubkeys', JSON.stringify(publicKeys.value))
+      }
     }
   }
 
@@ -81,13 +87,16 @@ export const useKeyStore = defineStore('keys', () => {
     }
   }
 
-  async function deleteKey(fingerprint) {
+  async function deletePublicKey(fingerprint) {
     publicKeys.value = publicKeys.value.filter((e) => {
-      e.fingerprint != fingerprint
+      return e.fingerprint != fingerprint
     })
     localStorage.setItem('pentagraph-pubkeys', JSON.stringify(publicKeys.value))
+  }
+
+  async function deletePrivateKey(fingerprint) {
     privateKeys.value = privateKeys.value.filter((e) => {
-      e.fingerprint != fingerprint
+      return e.fingerprint != fingerprint
     })
     localStorage.setItem('pentagraph-privkeys', JSON.stringify(privateKeys.value))
   }
@@ -127,7 +136,8 @@ export const useKeyStore = defineStore('keys', () => {
     setPublicKey,
     addKey,
     checkKey,
-    deleteKey,
+    deletePrivateKey,
+    deletePublicKey,
     decrypt,
     unlock,
     encrypt
