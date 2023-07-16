@@ -62,12 +62,34 @@ async function addPublicKey(newKey) {
   })
 }
 
+const isDragging = ref(false)
+
+async function onDrag(e) {
+  isDragging.value = true
+}
+
+async function onDragLeave(e) {
+  isDragging.value = false
+}
+
+async function onDrop(dropEvent) {
+  [...dropEvent.dataTransfer.files].forEach(file => {
+    let reader = new FileReader()
+    reader.onload = (readEvent => {
+      keys.addKey(readEvent.target.result)
+    })
+    reader.readAsText(file)
+  })
+  isDragging.value = false
+}
 </script>
 
 <template>
   <h2>Keys</h2>
-  <div class="keys">
-    <div>
+  <span class="info">Drag key files in to load</span>
+  <div class="keys" @drop.stop.prevent="onDrop" @dragover.prevent="onDrag" @dragleave="onDragLeave">
+    <div id="dropzone" v-if="isDragging"><span>Drop keys to load</span></div>
+    <div v-if="!isDragging">
       <h3>Private Keys</h3>
       <ul class="keyList">
         <li
@@ -109,7 +131,7 @@ async function addPublicKey(newKey) {
       </div>
     </div>
 
-    <div>
+    <div v-if="!isDragging">
       <h3>Public Keys</h3>
       <ul class="keyList">
         <li v-for="pubKey in keys.publicKeys" :title="'Fingerprint: ' + pubKey.fingerprint" :class="{ active: pubKey == keys.activePublicKey }">
@@ -153,7 +175,31 @@ async function addPublicKey(newKey) {
 }
 
 .keys > * {
-  width: 50%;
+  flex: 1;
+}
+
+.info {
+  font-size: small;
+}
+
+.info:before {
+  content: 'ℹ️';
+  margin-right: 0.1em;
+}
+
+#dropzone {
+  height: 10em;
+  border-radius: 1em;
+  margin: 1em;
+  border: 3px dashed var(--vt-c-primary);
+  display: flex;
+  place-items: center;
+}
+
+#dropzone > span {
+  flex: 1;
+  color: var(--vt-c-primary);
+  font-weight: 700;
 }
 
 .keyList {

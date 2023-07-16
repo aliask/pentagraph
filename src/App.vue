@@ -14,7 +14,9 @@ import Keys from './components/Keys.vue'
     </nav>
   </header>
 
-  <Keys />
+  <section>
+    <Keys />
+  </section>
 
   <section>
     <RouterView />
