@@ -17,7 +17,7 @@ const newPublicKeyIsValid = ref(false)
 
 async function checkPrivateKey(event) {
   let newKey = await keys.checkKey(newPrivateKey.value)
-  if(newKey) {
+  if (newKey) {
     newPrivateKeyIsValid.value = true
     newPrivateKeyName.value = newKey.name
   } else {
@@ -29,7 +29,7 @@ watch(newPrivateKey, checkPrivateKey)
 
 async function checkPublicKey(event) {
   let newKey = await keys.checkKey(newPublicKey.value)
-  if(newKey) {
+  if (newKey) {
     newPublicKeyIsValid.value = true
     newPublicKeyName.value = newKey.name
   } else {
@@ -42,9 +42,9 @@ watch(newPublicKey, checkPublicKey)
 async function doUnlock() {
   return keys.unlock(passphrase.value)
     .then(unlocked => {
-      if(unlocked)
+      if (unlocked)
         passphrase.value = ''
-    }).catch(e => {})
+    }).catch(e => { })
 }
 watch(passphrase, doUnlock)
 
@@ -87,94 +87,95 @@ async function onDrop(dropEvent) {
 <template>
   <h2>Keys</h2>
   <span class="info">Drag key files in to load</span>
-  <div class="keys" @drop.stop.prevent="onDrop" @dragover.prevent="onDrag" @dragleave="onDragLeave">
-    <div id="dropzone" v-if="isDragging"><span>Drop keys to load</span></div>
-    <div v-if="!isDragging">
-      <h3>Private Keys</h3>
-      <ul class="keyList">
-        <li
-          v-for="privKey in keys.privateKeys"
-          :title="'Fingerprint: ' + privKey.fingerprint"
-          :class="[
+  <div id="dragzone" @drop.stop.prevent="onDrop" @dragover.prevent="onDrag" @dragleave="onDragLeave">
+    <Transition name="dropzone">
+      <div id="dropzone" v-if="isDragging"><span>Drop keys to load</span></div>
+    </Transition>
+
+    <div class="keys">
+
+      <div>
+        <h3>Private Keys</h3>
+        <ul class="keyList">
+          <li v-if="keys.privateKeys.length == 0">No keys 🥲</li>
+          <li v-for="privKey in keys.privateKeys" :title="'Fingerprint: ' + privKey.fingerprint" :class="[
             { active: privKey == keys.activePrivateKey },
             { locked: keys.privateKeyLocked }
-          ]"
-        >
-          <a href="#" class="key" @click="keys.setPrivateKey(privKey.fingerprint)">{{ privKey.name }}</a>
-          -
-          <a href="#" @click="keys.deletePrivateKey(privKey.fingerprint)">Delete</a>
-        </li>
-        
-        <li v-if="keys.privateKeyLocked">
-          <h3>Passphrase</h3>
-          <input v-model="passphrase" type="password">
-        </li>
-        <li v-if="!showAddPrivateKeys">
-          <button @click="showAddPrivateKeys = true">
-            Add a new private key
-          </button>
-        </li>
-      </ul>
+          ]">
+            <a href="#" class="key" @click="keys.setPrivateKey(privKey.fingerprint)">{{ privKey.name }}</a>
+            -
+            <a href="#" @click="keys.deletePrivateKey(privKey.fingerprint)">Delete</a>
+          </li>
 
-      <div v-if="showAddPrivateKeys" class="addKeyAside">
-        <textarea
-          @keydown.esc="showAddPrivateKeys = false"
-          v-model="newPrivateKey"
-          class="keyInput"
-          :class="{ finished: newPrivateKeyIsValid }"
-        ></textarea>
-        <span v-if="newPrivateKeyIsValid">Key UserID: {{ newPrivateKeyName }}</span>
-        <div class="buttongroup">
-          <button @click="showAddPrivateKeys = false">Cancel</button>
-          <button class="accept" @click="addPrivateKey(newPrivateKey)" :disabled="!newPrivateKeyIsValid">Add</button>
-        </div>
+          <li v-if="keys.privateKeyLocked">
+            <h3>Passphrase</h3>
+            <input v-model="passphrase" type="password">
+          </li>
+          <li v-if="!showAddPrivateKeys">
+            <button @click="showAddPrivateKeys = true">
+              Add a new private key
+            </button>
+          </li>
+        </ul>
+
+        <Transition>
+          <div v-if="showAddPrivateKeys" class="addKeyAside">
+            <textarea @keydown.esc="showAddPrivateKeys = false" v-model="newPrivateKey" class="keyInput"
+              :class="{ finished: newPrivateKeyIsValid }"></textarea>
+            <span v-if="newPrivateKeyIsValid">Key UserID: {{ newPrivateKeyName }}</span>
+            <div class="buttongroup">
+              <button @click="showAddPrivateKeys = false">Cancel</button>
+              <button class="accept" @click="addPrivateKey(newPrivateKey)" :disabled="!newPrivateKeyIsValid">Add</button>
+            </div>
+          </div>
+        </Transition>
+      </div>
+
+      <div>
+        <h3>Public Keys</h3>
+        <ul class="keyList">
+          <li v-if="keys.publicKeys.length == 0">No keys 🥲</li>
+          <li v-for="pubKey in keys.publicKeys" :title="'Fingerprint: ' + pubKey.fingerprint"
+            :class="{ active: pubKey == keys.activePublicKey }">
+            <a href="#" class="key" @click="keys.setPublicKey(pubKey.fingerprint)">{{ pubKey.name }}</a>
+            -
+            <a href="#" @click="keys.deletePublicKey(pubKey.fingerprint)">Delete</a>
+          </li>
+          <li v-if="!showAddPublicKeys">
+            <button @click="showAddPublicKeys = true">
+              Add a new public key
+            </button>
+          </li>
+        </ul>
+
+        <Transition>
+          <div v-if="showAddPublicKeys" class="addKeyAside">
+            <textarea @keydown.esc="showAddPublicKeys = false" v-model="newPublicKey" class="keyInput"
+              :class="{ finished: newPublicKeyIsValid }"></textarea>
+            <span v-if="newPublicKeyIsValid">Key UserID: {{ newPublicKeyName }}</span>
+            <div class="buttongroup">
+              <button @click="showAddPublicKeys = false">Cancel</button>
+              <button class="accept" @click="addPublicKey(newPublicKey)" :disabled="!newPublicKeyIsValid">Add</button>
+            </div>
+          </div>
+        </Transition>
       </div>
     </div>
 
-    <div v-if="!isDragging">
-      <h3>Public Keys</h3>
-      <ul class="keyList">
-        <li v-for="pubKey in keys.publicKeys" :title="'Fingerprint: ' + pubKey.fingerprint" :class="{ active: pubKey == keys.activePublicKey }">
-          <a href="#" class="key" @click="keys.setPublicKey(pubKey.fingerprint)">{{ pubKey.name }}</a>
-          -
-          <a href="#" @click="keys.deletePublicKey(pubKey.fingerprint)">Delete</a>
-        </li>
-        <li v-if="!showAddPublicKeys">
-          <button @click="showAddPublicKeys = true">
-            Add a new public key
-          </button>
-        </li>
-      </ul>
-
-      <div v-if="showAddPublicKeys" class="addKeyAside">
-        <textarea
-          @keydown.esc="showAddPublicKeys = false"
-          v-model="newPublicKey"
-          class="keyInput"
-          :class="{ finished: newPublicKeyIsValid }"
-        ></textarea>
-        <span v-if="newPublicKeyIsValid">Key UserID: {{ newPublicKeyName }}</span>
-        <div class="buttongroup">
-          <button @click="showAddPublicKeys = false">Cancel</button>
-          <button class="accept" @click="addPublicKey(newPublicKey)" :disabled="!newPublicKeyIsValid">Add</button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <style>
-@media (min-width: 1024px) {
-  .keys {
-    display: flex;
-    flex-direction: row;
-    gap: 2em;
-    place-items: center;
-    width: 100%;
-  }
+.keys {
+  display: flex;
+  flex-direction: row;
+  gap: 2em;
+  place-items: center;
+  width: 100%;
+  margin: 1em;
 }
 
-.keys > * {
+.keys>* {
   flex: 1;
 }
 
@@ -187,19 +188,31 @@ async function onDrop(dropEvent) {
   margin-right: 0.1em;
 }
 
-#dropzone {
-  height: 10em;
-  border-radius: 1em;
-  margin: 1em;
-  border: 3px dashed var(--vt-c-primary);
-  display: flex;
-  place-items: center;
+#dragzone {
+  position: relative;
+  min-height: 10em;
 }
 
-#dropzone > span {
+#dropzone {
+  height: 10em;
+  border-radius: 2em;
+  outline-offset: -1em;
+  outline: 3px dashed var(--vt-c-primary);
+  display: flex;
+  place-items: center;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: var(--color-background);
+}
+
+#dropzone>span {
   flex: 1;
   color: var(--vt-c-primary);
   font-weight: 700;
+
+  /* Prevents glitching while dragging */
+  pointer-events: none;
 }
 
 .keyList {
@@ -207,7 +220,7 @@ async function onDrop(dropEvent) {
   padding: 0.5em;
 }
 
-.keyList > * {
+.keyList>* {
   padding: 0.3em;
 }
 
@@ -216,12 +229,12 @@ a.key::before {
   margin-right: 0.1em;
 }
 
-.active.locked > a.key::before {
+.active.locked>a.key::before {
   content: '🔒';
   margin-right: 0.1em;
 }
 
-.active > a.key::before {
+.active>a.key::before {
   content: '🟢';
   margin-right: 0.1em;
 }
@@ -257,7 +270,7 @@ button.accept:hover {
   gap: 2em;
 }
 
-.buttongroup > * {
+.buttongroup>* {
   flex: 1;
 }
 
@@ -266,5 +279,27 @@ button.accept:hover {
   flex-direction: column;
   gap: 1em;
   justify-items: start;
+}
+
+.dropzone-enter-active,
+.dropzone-leave-active {
+  transition: opacity 0.2s ease-out;
+}
+
+.dropzone-enter-from,
+.dropzone-leave-to {
+  opacity: 0;
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: all 0.4s ease-out;
+  max-height: 100vh;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+  max-height: 0px;
 }
 </style>
